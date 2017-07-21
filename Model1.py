@@ -367,7 +367,6 @@ def runC3layer(S3outputs):
 	summed = [np.sum(a) for a in S3outputs]
 
 	print summed
-
 	print 'Max activation for object: ', np.argmax(summed)
 	print 'Min activation for object: ', np.argmin(summed)
 
@@ -413,7 +412,10 @@ def feedbackSignal(objprots, targetIndx, imgC2b): #F(o,P), Eq 4
 	# print 'Feedback after normalization: ', feedback, np.min(feedback), np.max(feedback)
 	return feedback
 
-def scale(arr):
+def scalePrioMap(arr):
+	'''
+	Used for graphs, visualization
+	'''
 	arr *= 1.0/np.amax(arr)
 	arr += 0.5
 	return arr
@@ -437,34 +439,11 @@ def topdownModulation(S2boutputs,feedback): #LIP MAP
 		lipMap.append(lip)
 	return lipMap
 
-# def priorityMap(lipMap):
-# 	prMap = []
-# 	wdt, hgt = lipMap[0].shape
-# 	for scale in xrange(len(lipMap)):
-# 		if(scale > 0):
-# 			prMap.append(sm.imresize(lipMap[scale], (wdt,hgt), mode='F', interp='bicubic'))
-# 		else:
-# 			prMap.append(lipMap[scale])
-# 	result = np.mean(prMap, axis = 0)
-
-# 	return result
 def computeFinalStride(scale):
 	RFSIZE = opt.S1RFSIZES[scale]
 	stride = int(np.round(RFSIZE/4.0))
 	return (2*stride)
 
-
-def get_relatived_value(arr, rel_idx):
-	forward_bias, idx = math.modf(rel_idx * len(arr))
-	if idx+1 == len(arr):
-		return arr[-1]
-	first_bias = 1 - forward_bias
-	v1 = np.array(arr[int(idx)]) * first_bias
-	v2 = np.array(arr[int(idx)+1]) * forward_bias
-	return (v1 + v2).tolist()
-
-def rel_2d_value(mat, rel_x, rel_y):
-	return get_relatived_value(get_relatived_value(mat, rel_x), rel_y)
 
 def corresponding_points(ox, oy, stride, size):
 	# x values begin at z + xw and go from xs to xs+s
@@ -498,6 +477,7 @@ def priorityMap(lipMap,originalImgSize): #Eq 6 sum over scales
 	for scale in xrange(len(lipMap)): # iterating over images
 		lip_S = np.sum(lipMap[scale],axis=2)
 		dims = lip_S.shape
+
 		# stride = computeFinalStride(scale)
 		stride = int(np.round(opt.S1RFSIZES[scale]))
 		for i in xrange(dims[0]): # iterate over pixels of LIP (smaller than image.)
@@ -588,7 +568,6 @@ def getObjNames():
 		prots[pnum] = imgfile
 	return prots
 
-	
 
 def buildS3Prots(numprots, s1filters, imgProts, resize=False):
 	print 'Building S3 prots'
@@ -654,13 +633,15 @@ def inhibitionOfReturn(prio):
 	return prio * g, focus_x, focus_y
 
 def prio_modulation(prio, s2boutputs):
-	# prio = (prio - np.min(prio))/np.max(prio)
+	#prio = (prio - np.min(prio))/np.max(prio)
 	copy = np.copy(s2boutputs)
 	ret = []
 	for idx, scale in enumerate(copy):
+		
 		rs = sm.imresize(prio, scale.shape[:2])
+		#rs = scalePrioMap(rs)
 		new = np.copy(copy[idx])
-		for i in xrange(600):
+		for i in xrange(scale.shape[2]):
 			new[:,:,i] *= rs
 		# copy[idx].fill(1.0)
 		ret.append(new)

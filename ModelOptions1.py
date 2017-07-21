@@ -27,6 +27,7 @@ IMAGESFOROBJPROTS = './gdrivesets/objs'
 IORSIGMA = 15
 # GAUSSFACTOR = 150.0
 GAUSSFACTOR = 7.5
+IMGSIZE =[256.0,256.0]
 
 # 15 and 7.5
 # try 25 for sigma?

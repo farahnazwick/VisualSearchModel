@@ -35,14 +35,14 @@ protsfile = open('naturalImgC2b.dat', 'rb')
 imgC2b = cPickle.load(protsfile)
 print 'imgC2b: ', len(imgC2b)
 imgC2b = imgC2b[0:-1]
-with open('S3prots.dat', 'rb') as f:
-# with open('resizeds3prots.dat', 'rb') as f:
-    s3prots = cPickle.load(f)[:-1]
+#with open('S3prots.dat', 'rb') as f:
+with open('resizeds3prots.dat', 'rb') as f:
+    #s3prots = cPickle.load(f)[:-1]
+    s3prots = cPickle.load(f)
+print 'S3prots length: ', len(s3prots)
 #num_objs x num_scales x n x n x prototypes
-
 # Model1.buildS3Prots(1720,s1filters,imgprots)
-
-#num_scales x n x n x prototypes
+# num_scales x n x n x prototypes
 
 objNames = Model1.getObjNames()
 
@@ -94,20 +94,8 @@ lipmap = Model1.topdownModulation(S2boutputs,feedback)
 protID = np.argmax(feedback)
 print feedback[protID], np.mean(feedback)
 print 'lipmap shape: ', len(lipmap), lipmap[0].shape
-#sif, minV, maxV = Model1.imgDynamicRange(np.mean(S1outputs[scaleSize], axis = 2))
-#print 'Sif: ', sif.shape, 'Max: ', maxV, 'Min: ', minV
 
-#cif, minV, maxV = Model1.imgDynamicRange(np.mean(C1outputs[scaleSize], axis = 2))
-#print 'Cif: ', cif.shape, 'Max: ', maxV, 'Min: ', minV
-
-#s2b, minV, maxV = Model1.imgDynamicRange(S2boutputs[scaleSize][:,:,protID])
-#print 's2b: ', s2b.shape, 'Max: ', maxV, 'Min: ', minV
-
-# C2boutputs = Model1.runC1layer(S2boutputs)
-#lm, minV, maxV = Model1.imgDynamicRange(lipmap[scaleSize][:,:,protID])
-#print 'lipmap: ', lm.shape, 'Max: ', maxV, 'Min: ', minV
-
-priorityMap = Model1.priorityMap(lipmap,[256,256])
+priorityMap = Model1.priorityMap(lipmap, opt.IMGSIZE)
 
 # i = 0
 # found = False
@@ -124,8 +112,7 @@ priorityMap = Model1.priorityMap(lipmap,[256,256])
 
 modulated_s2boutputs = Model1.prio_modulation(priorityMap, S2boutputs)
 # cropped_s2boutputs = Model1.crop_s2boutputs(modulated_s2boutputs, priorityMap)
-cropped_s2boutputs = modulated_s2boutputs
-t = Model1.runS3layer(cropped_s2boutputs, s3prots, priorityMap)
+t = Model1.runS3layer(modulated_s2boutputs, s3prots, priorityMap)
 # print t
 t2 = Model1.runC3layer(t)
 print 'predicted: ', t2
@@ -189,7 +176,7 @@ if 'b' in whichgraph:
     plt.gray()
     pmap, minV, maxV = Model1.imgDynamicRange(priorityMap)
     dims = pmap.shape
-    pmap = Model1.scale(priorityMap)
+    pmap = Model1.scalePrioMap(priorityMap)
     for i in xrange(dims[0]):
         for j in xrange(dims[0]):
             tmp = pmap[i,j]
