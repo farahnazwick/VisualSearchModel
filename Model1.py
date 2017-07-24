@@ -11,7 +11,7 @@ import math
 import scipy.ndimage.filters as snf
 import os
 import time
-
+from numpy import unravel_index
 reload(opt)
 
 #DEBUG
@@ -314,19 +314,20 @@ def runS2blayer(C1outputs, prots):
 # 	return output
 
 def scale_maxes(scales, prio_map):
-	relative_focus = np.argmax(prio_map)
-	fy = math.floor(relative_focus/256)
-	fx = relative_focus % 256
+	#relative_focus = np.argmax(prio_map)
+	fx,fy = unravel_index(prio_map.argmax(), prio_map.shape)
+	#fy = math.floor(relative_focus/256)
+	#fx = relative_focus % 256
 
 	final = [] # want to be 600 long
 	for scale in scales:
 		# scale.shape is n x n x 600
 		scale_set = [] # will end up being 600 x 1
-		sfx = int(fx * scale.shape[0]/256.0)
-		sfy = int(fy * scale.shape[1]/256.0)
+		sfx = int(fx * scale.shape[0]/opt.IMGSIZE[0])
+		sfy = int(fy * scale.shape[1]/opt.IMGSIZE[1])
 		for prot_idx in xrange(scale.shape[2]):
 			# scale_set.append(np.amax(scale[:,:,prot_idx]))
-			scale_set.append(scale[sfy,sfx,prot_idx]) # order of x/y?
+			scale_set.append(scale[sfx,sfy,prot_idx]) # order of x/y?
 		final.append(scale_set)
 	# final should currently be 3 x 600
 	return np.mean(final, axis=0) # 600-length, 1D
@@ -619,9 +620,9 @@ def focus_location(prio):
 
 def inhibitionOfReturn(prio):
 	relative_focus = np.argmax(prio)
-	img_size = 256.0*256.0
-	focus_y = math.floor(relative_focus/256)
-	focus_x = relative_focus % 256
+	img_size = opt.IMGSIZE[0]*opt.IMGSIZE[1]
+	focus_y = math.floor(relative_focus/opt.IMGSIZE[0])
+	focus_x = relative_focus % opt.IMGSIZE[0]
 	# k = 0.2 paper used this
 	# sigma = 16.667 paper used this
 	# print 'before gauss'
