@@ -306,16 +306,17 @@ def avg_spearman(a, b):
 	return np.sum(lower)/value_count
 
 def comparison(a, b):
-	return stats.spearmanr(a, b)[0]
+	#return stats.spearmanr(a, b)[0]
 	# return spatial.distance.euclidean(a, b)
-	# return np.dot(a, b)/np.linalg.norm(a)
+	#return np.dot(a, b)/np.linalg.norm(a)
+	return np.corrcoef(a,b)[0][1]
 
 
 
 def runS3layer(S2boutputs, prots):
 	print 'Running S3 layer'
 	
-	S2bsmall = S2boutputs[:1] # 3 x n x n x 600
+	S2bsmall = S2boutputs[:3] # 3 x n x n x 600
 	# S2bsmall is an array 3 of numpy arrays that are n x n x 600
 	s3scalemaps = np.empty([len(S2bsmall), len(prots)]) # 40 maps at each scale		
 	print 'Initialize empty scale map. shape is: ', s3scalemaps.shape
@@ -332,14 +333,20 @@ def runS3layer(S2boutputs, prots):
 					eachprot = []
 					#print 'Thisprot shape is: ', len(thisprot), len(thisprot[0])
 					for k in np.arange(len(thisprot)):
+						#print 'Scalevec size: ', len(scaleVec), ' thisprot size: ', len(thisprot[k])
 						eachprot.append(comparison(scaleVec,thisprot[k]))
-					eachscale[i,j] = np.mean(eachprot)
+					if(len(eachprot) == 0):
+						eachscale[i,j] = 0
+					else:
+						eachscale[i,j] = np.max(eachprot)
 			s3scalemaps[scale_idx,prot_idx] = np.mean(eachscale) # should have length of 40 for each scale
 		
 	return np.mean(s3scalemaps, axis=0) # 40 long
+
+
 def runC3layer(S3outputs):
 	print "Running  C3 group (global max of S3 inputs)"
-
+	print 'Sorted array of S3 outputs (small to large): ', np.argsort(S3outputs)
 	print 'Max activation for object: ', np.argmax(S3outputs)
 	print 'Min activation for object: ', np.argmin(S3outputs)
 

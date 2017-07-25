@@ -36,9 +36,9 @@ imgC2b = cPickle.load(protsfile)
 print 'imgC2b: ', len(imgC2b)
 imgC2b = imgC2b[0:-1]
 #with open('S3prots.dat', 'rb') as f:
-with open('S3prots.dat', 'rb') as f:
-    s3prots = cPickle.load(f)[:-1]
-    #s3prots = cPickle.load(f)
+with open('resizedS3prots.dat', 'rb') as f:
+    #s3prots = cPickle.load(f)[:-1]
+    s3prots = cPickle.load(f)
 print 'S3prots length: ', len(s3prots)
 #num_objs x num_scales x n x n x prototypes
 # Model1.buildS3Prots(1720,s1filters,imgprots)
@@ -62,7 +62,7 @@ lobster = 22
 accordion = 1
 turtle = 38
 
-targetIndex = butterfly
+targetIndex = binoculars
 stimnum = 4
 location = (0, 2) # ZERO INDEXED
 
@@ -81,21 +81,21 @@ def check_bounds(x, y):
     print x, y, bounds
     return x >= bounds[0] and x <= bounds[1] and y >= bounds[2] and y <= bounds[3]
 
-img = scipy.misc.imread('example.png')
-# img = scipy.misc.imread('hatonly.png', mode='I')
-#img = scipy.misc.imread('objectimages/1.normal.png')
+#img = scipy.misc.imread('example.png')
+img = scipy.misc.imread('binoculars_small.png')
+#img = scipy.misc.imread('objectimages/9.normal.png')
 # img = scipy.misc.imread('stimuli/1.array{}.ot.png'.format(stimnum))
 S1outputs = Model1.runS1layer(img, s1filters)
 C1outputs = Model1.runC1layer(S1outputs)
 S2boutputs = Model1.runS2blayer(C1outputs, imgprots)
-feedback = Model1.feedbackSignal(objprots, targetIndex, imgC2b)
-print 'feedback info: ', feedback.shape
-lipmap = Model1.topdownModulation(S2boutputs,feedback)
-protID = np.argmax(feedback)
-print feedback[protID], np.mean(feedback)
-print 'lipmap shape: ', len(lipmap), lipmap[0].shape
+# feedback = Model1.feedbackSignal(objprots, targetIndex, imgC2b)
+# #print 'feedback info: ', feedback.shape
+# lipmap = Model1.topdownModulation(S2boutputs,feedback)
+# protID = np.argmax(feedback)
+# print feedback[protID], np.mean(feedback)
+# print 'lipmap shape: ', len(lipmap), lipmap[0].shape
 
-priorityMap = Model1.priorityMap(lipmap, opt.IMGSIZE)
+# priorityMap = Model1.priorityMap(lipmap, opt.IMGSIZE)
 
 # i = 0
 # found = False
@@ -110,8 +110,8 @@ priorityMap = Model1.priorityMap(lipmap, opt.IMGSIZE)
 # for i in xrange(inhibitions):
 #     priorityMap = Model1.inhibitionOfReturn(priorityMap)
 
-#modulated_s2boutputs = S2boutputs
-modulated_s2boutputs = Model1.prio_modulation(priorityMap, S2boutputs)
+modulated_s2boutputs = S2boutputs
+#modulated_s2boutputs = Model1.prio_modulation(priorityMap, S2boutputs)
 # cropped_s2boutputs = Model1.crop_s2boutputs(modulated_s2boutputs, priorityMap)
 t = Model1.runS3layer(modulated_s2boutputs, s3prots)
 # print t
