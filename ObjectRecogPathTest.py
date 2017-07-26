@@ -100,7 +100,7 @@ def runS1layer(imgin, s1f):
 		# We assume that at any given scale, all the filters have the same RF size,
 		# and so the RF size is simply the x-size of the filter at the 1st orientation
 		# (note that all RFs are assumed square).
-		#sprint 'Shape of S1 filter: ', fthisscale[0].shape 
+		#print 'Shape of S1 filter: ', fthisscale[0].shape 
 		RFSIZE = fthisscale[0].shape[0]
 		assert RFSIZE == opt.S1RFSIZES[scaleidx]
 		stride = int(np.round(RFSIZE/4.0))
@@ -143,11 +143,13 @@ def runS1layer(imgin, s1f):
 	return output
 
 def extractS3Vector(output):
-	numScales = range(len(output))[0:3]
+	numScales = range(len(output))[0:2]
 	selectedScale = random.choice(numScales)
 	print 'S3 Selected SCALE is: ', selectedScale
 	Cchoice = output[selectedScale]
+	print 'Cchoice shape is: ', Cchoice.shape
 	assert Cchoice.shape[0]> 1 
+
 	shapeX = Cchoice.shape[0] 
 	shapeY = Cchoice.shape[1] 
 	finished = 0
@@ -316,7 +318,7 @@ def comparison(a, b):
 def runS3layer(S2boutputs, prots):
 	print 'Running S3 layer'
 	
-	S2bsmall = S2boutputs[:3] # 3 x n x n x 600
+	S2bsmall = S2boutputs[:2] # 3 x n x n x 600
 	# S2bsmall is an array 3 of numpy arrays that are n x n x 600
 	s3scalemaps = np.empty([len(S2bsmall), len(prots)]) # 40 maps at each scale		
 	print 'Initialize empty scale map. shape is: ', s3scalemaps.shape
@@ -338,7 +340,7 @@ def runS3layer(S2boutputs, prots):
 					if(len(eachprot) == 0):
 						eachscale[i,j] = 0
 					else:
-						eachscale[i,j] = np.max(eachprot)
+						eachscale[i,j] = np.meanf(eachprot)
 			s3scalemaps[scale_idx,prot_idx] = np.mean(eachscale) # should have length of 40 for each scale
 		
 	return np.mean(s3scalemaps, axis=0) # 40 long
@@ -495,6 +497,7 @@ def buildObjProts(s1filters, imgProts, resize=False, full=False): #computing C2b
 	print 'Building object protoypes' 
 	imgfiles = os.listdir(opt.IMAGESFOROBJPROTS) #changed IMAGESFOROBJPROTS to IMAGESFORPROTS
 	print imgfiles
+	print len(imgfiles)
 
 	prots = [0 for i in range(len(imgfiles)-1)]
 	if full:
@@ -514,9 +517,10 @@ def buildObjProts(s1filters, imgProts, resize=False, full=False): #computing C2b
 		pnum = int(tmp[0]) - 1
 		print 'pnum: ', pnum		
 
-		img = sm.imread(opt.IMAGESFOROBJPROTS+'/'+imgfile, mode='I') # changed IMAGESFOROBJPROTS to get 250 nat images c2b vals
+		#img = sm.imread(opt.IMAGESFOROBJPROTS+'/'+imgfile, mode='I') # changed IMAGESFOROBJPROTS to get 250 nat images c2b vals
+		img = sm.imread(opt.IMAGESFOROBJPROTS+'/'+imgfile) # changed IMAGESFOROBJPROTS to get 250 nat images c2b vals
 		if resize:
-			img = sm.imresize(img, (64, 64))
+			img = sm.imresize(img, (44, 44))
 		
 		t = time.time()
 		S1outputs = runS1layer(img, s1filters)
@@ -554,6 +558,7 @@ def buildS3Prots(numprots, s1filters, imgProts, resize=False):
 	imgfiles = os.listdir(opt.IMAGESFOROBJPROTS)
 	print 'Numfiles is: ', len(imgfiles), 'Using files: ', (len(imgfiles)-1) 
 	numProtsPerObj = numprots/(len(imgfiles)-1)
+	print 'NumProtsperObj is: ',numProtsPerObj
 	prots = [[] for i in range(len(imgfiles))]
 	for i in range (len(imgfiles)):
 		print '----------------------------------------------------'
@@ -568,7 +573,7 @@ def buildS3Prots(numprots, s1filters, imgProts, resize=False):
 
 		img = sm.imread(opt.IMAGESFOROBJPROTS+'/'+imgfile)
 		if resize:
-			img = sm.imresize(img, (64, 64))
+			img = sm.imresize(img, (44, 44)) #changed from (64,64)
 		
 		for n in range(numProtsPerObj):
 			print 'Prot number', n, 'select image: ',  imgfile

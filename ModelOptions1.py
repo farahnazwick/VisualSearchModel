@@ -18,7 +18,7 @@ NBKEPTWEIGHTS = 100
 
 IMAGESFORPROTS = './naturalimages'
 # IMAGESFOROBJPROTS = './objectimages'
-IMAGESFOROBJPROTS = './gdrivesets/objs'
+IMAGESFOROBJPROTS = './objectimages'
 
 # GAUSSFACTOR = 150.0
 # IORSIGMA = 35
